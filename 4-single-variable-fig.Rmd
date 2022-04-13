@@ -1,0 +1,118 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+# (PART) 图库 {-}
+
+# 单变量图 {#single-variable-fig}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, fig.align = "center")
+library(tidyverse)
+library(knitr)
+library(patchwork)
+library(janitor)
+```
+
+单变量图是用来展示单一变量的统计图形，最常见的就是条形图、直方图和箱线图。在本章中会同时展示多张箱线图、小提琴图、带状图等。
+
+## 条形图/柱形图 {#sec:bar-plot}
+
+```{r, warning=FALSE}
+# 载入数据
+data(VADeaths)
+colnames(VADeaths) = c("农村男性", "农村女性", "城市男性", "城市女性")
+reshape_VADeaths <- as_tibble(VADeaths) %>% 
+  mutate(age = c("50-54", "55-59", "60-64", "65-69", "70-74")) %>% 
+  select(age, everything()) %>% 
+  # clean_names() %>% 
+  pivot_longer(cols = -age,
+               names_to = "sex",
+               values_to = "rates")
+```
+
+```{r VADeaths, fig.cap="弗吉尼亚州死亡率数据条形图"}
+library(RColorBrewer)  # 分类调色板
+par(mfrow = c(2, 1), mar = c(3, 2.5, 0.5, 0.1))
+p <- ggplot(data = reshape_VADeaths, 
+            aes(x = age, y = rates, fill = sex)) +
+  labs(x = "年龄", y = "死亡率", fill = "性别") +
+  scale_fill_discrete(labels = c("农村男性", "农村女性",
+                                 "城市男性", "城市女性"))
+
+p1 <- p + 
+  geom_col(position = "stack")
+p2 <- p +
+  geom_col(position = "dodge")
+p1 / p2
+```
+
+图\@ref(fig:VADeaths)展示条形图的两种形式：
+
+1. 堆砌型：较容易比较各组之间的差异。图中为各年龄组的死亡率高低。
+
+2. 并列型：较容易比较每组内不同类型间的差异。图中为城乡、性别不同导致的死亡率的不同。
+
+::: {.rmdinfo}
+Cleveland点图
+
+```{r}
+reshape_VADeaths$age <- factor(reshape_VADeaths$age)
+reshape_VADeaths$sex <- factor(reshape_VADeaths$sex)
+reshape_VADeaths$age <- factor(reshape_VADeaths$age, levels = rev(levels(reshape_VADeaths$age)))
+reshape_VADeaths$sex <- factor(reshape_VADeaths$sex, levels = rev(levels(reshape_VADeaths$sex)))
+ggplot(reshape_VADeaths, aes(x = sex, y = rates, color = age)) +
+  geom_point() +
+  facet_grid(age ~.) +
+  coord_flip() +
+  theme(legend.position = "", axis.title = element_blank())
+```
+:::
+
+## 箱线图 {#sec:boxplot}
+
+```{r}
+data("InsectSprays")
+ggplot(InsectSprays, aes(x = spray, y = count)) +
+  geom_boxplot(outlier.shape = 4) +
+  labs(x = "杀虫剂", y = "昆虫数目") +
+  coord_flip()
+```
+
+::: {.rmdinfo}
+箱线图的凹槽功能
+
+```{r}
+set.seed(1234)
+x <- rnorm(150)  # 生成150个服从正态分布N(0,1)的随机数
+y <- rnorm(50, 0.8)  # 生成50个服从N(0.5,1)的随机数
+df_XY <- data.frame(num = c(x, y), idx = c(rep("x", 150), rep("y", 50)))
+ggplot(df_XY, aes(x = idx, y = num, fill = idx)) +
+  geom_boxplot(notch = TRUE) +  # notch参数设定图形是否有凹槽，默认为无
+  coord_flip() 
+```
+:::
+
+## 带状图 {#sec:jitter}
+
+带状图的优势：可以反映出原始数据的疏密，并将所有数据的点都显示出来。
+
+利用带状图的这一优势，我们可以在图中加入带状图，作为数据分布的辅助性描述。
+
+```{r fig-jitter, fig.cap="(ref:jitter)"}
+data("InsectSprays")
+ggplot(InsectSprays, aes(x = count, y = spray, color = spray)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(shape = 0) +
+  labs(x = "昆虫数量", y = "杀虫剂种类") +
+  theme_bw() +
+  theme(legend.position = "")
+```
+(ref:jitter)使用ggplot绘制的带状图
+
+### QQ图 {#sec:QQ-plot}
+
+使用QQ图检查数据是否符合某一检验。
+
+

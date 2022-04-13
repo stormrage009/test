@@ -1,0 +1,108 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# 现代实例 {#examples}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, fig.align = "center")
+library(tidyverse)
+library(knitr)
+library(patchwork)
+library(MSG)
+library(kableExtra)
+```
+## 猪肉价格 {#sec:three1}
+
+首先我们看下面图形：
+
+```{r pork-price1, fig.cap="2006-2011年猪肉价格走势图"}
+knitr::include_graphics("images/pork-price-orig.png")
+```
+
+图\@ref(fig:pork-price1)虽然很生动，但存在一些问题：
+
+   - 图形的横坐标时间单位不统一，导致虽然我们可以看出猪肉的价格在上涨，但图形呈现出的总体趋势却较平稳。
+   - 柱状图在呈现上升或下降趋势的时候，效果比较平淡。
+   
+我们使用`ggplot2`对图形进行重新绘制，并对以上图形中的问题进行改进。
+
+```{r pork-price2, fig.cap="R语言重新绘制猪肉价格曲线"}
+year <- c(2006, 2007, 2008, 2009, 2010 + c(1, 4, 7, 10, 13)/12)
+price <- c(12.11, 18.80, 22.09, 18.39, 19.86, 14.89, 16.68, 18.76, 19.57)
+pork_price <- data.frame(year, price)
+ggplot(pork_price, aes(year, price)) +
+  labs(x = "年份", y = "价格") +
+  geom_line() +
+  geom_point()
+```
+
+## 统计词话
+
+选取中国历史上16位词人的3395篇词（包括李煜、李清照、苏轼等著名词人以及马钰、丘处机、王初一等全真教名人）。
+
+1. 统计高频词。
+
+2. 计算每位作者词中出现这次高频词的频率。
+
+```{r}
+load(system.file("extdata", "SongWords.rda", package = "MSG"))
+head(SongWords)
+```
+
+3. 利用以上数据（出现频率）进行“谱系图”的绘制。
+
+```{r tree-plot, fig.align='center', fig.cap="(ref:fig-tree-plot)"}
+# 宋词作者层次聚类谱系图
+load(system.file("extdata", "SongWords.rda", package = "MSG"))
+SongCorr <- cor(SongWords)
+song.hc <- hclust(as.dist(1 - SongCorr))
+par(mar = c(0.5, 4, 0.2, 0.1))
+plot(song.hc, main = "", cex = 0.8, ylab = "高度")
+rect.hclust(song.hc, k = 4, border = "red")
+```
+(ref:fig-tree-plot) 宋词作者谱系图，从下到上对16位作者进行逐级“合并”，最终聚为一类。作者在纵轴上位置的高低表明了他们进入类的先后顺序。
+
+```{r corr-plot-3, fig.cap="(ref:fig-corr-plot-3)"}
+# 相关矩阵图。依据聚类结果将作者分为四类。
+library(corrplot)
+corrplot(SongCorr, order = "hc", diag = FALSE, addrect = 4, tl.cex = 0.75)
+```
+(ref:fig-corr-plot-3) 宋词作者词风相关矩阵图：主对角线上对应作者的名字，圆圈的大小、颜色深浅和相关系数的绝对值正相关，蓝色、红色分别表示系数的正负（右侧的图例条）。n
+
+```{r song-high-freq,fig.cap="(ref:song-high-freq)"}
+library(igraph, warn.conflicts = FALSE)
+load(system.file("extdata", "HighFreq100.rda", package = "MSG")))
+g <- graph.adjacency((HighFreq100 > 0.05) * HighFreq100,
+  mode = "undirected", weighted = TRUE, diag = FALSE
+)
+cg <- clusters(g)
+colbar <- as.numeric(as.factor(cg$csize[cg$membership + 1]))
+V(g)$color <- rev(heat.colors(9))[colbar]
+
+ff <- as.numeric(cut(E(g)$weight, breaks = c(0.05, 0.1, 0.2, 0.3, 0.4)), right = FALSE)
+E(g)$width <- 2 * (1:4)[ff]
+
+col <- c("greenyellow", "cadetblue1", "cornflowerblue", "blue", "darkblue")
+E(g)$color <- col[ff]
+par(mar = c(0, 0, 0, 0))
+set.seed(2011)
+L.sc <- layout.fruchterman.reingold(g, niter = 500)
+plot(g,
+  layout = L.sc, vertex.frame.color = NA,
+  vertex.label = attr(V(g), "names"), vertex.label.cex = 0.6,
+  vertex.label.color = grey(0.1),
+  vertex.size = 8)
+legend(1.1, -0.5,
+      levels(factor(V(g)$name)),
+       col = col, lwd = sort(unique(E(g)$width)), cex = 0.8
+)
+```
+(ref:song-high-freq) 宋词前 100 高频词的关系网络图：节点越多的类中圆圈颜色越深，节点间连线的粗细颜色对应不同的关系系数，如逍遥和自在之间的连线最粗。
+
+观察图 \@ref(fig:song-high-freq)，可以发现这一百个高频词被划分为多个类，有些类包含多个节点，是个大家族；而有些类仅有一个节点。
+
+## 统计模拟
+

@@ -1,0 +1,37 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# (PART) 案例 {-}
+
+# 经典图形 {#classic-fig}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, fig.align = "center")
+library(tidyverse)
+library(knitr)
+library(patchwork)
+```
+
+统计图形的意义在于引导我们观察到统计数据中的信息。本章我们欣赏几幅可以名垂青史的统计图形。
+
+
+```{r echo=FALSE}
+knitr::include_graphics("images/Playfair-pie2.jpg")
+knitr::include_graphics("images/Playfair-pie1.png")
+knitr::include_graphics("images/Minard.png")
+knitr::include_graphics("images/Snow-cholera-map.jpg")
+knitr::include_graphics("images/Nightingale-mortality.jpg")
+```
+
+以上展示了具有历史意义的几幅统计图。
+
+要把图形提到“统计分析”的高度，要搞清以下内容：
+
+   - 原始数据的来源和类型
+   - 统计量的计算
+   - 图形的构造与组合机制等。
+
+

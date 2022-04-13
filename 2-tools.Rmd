@@ -1,0 +1,15 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# 作图工具 {#tools}
+
+1. 采用R语言作为作图工具：
+
+   - R语言集统计计算和统计图示两个功能于一身，
+
+   - ggplot2图形包非常好用。
+
+2. 本书配备了附加包-`MGS`包。我们可以使用本包重现本书中的图形。

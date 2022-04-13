@@ -1,0 +1,8 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# 多变量图 {#mutiple-variable-fig}
+

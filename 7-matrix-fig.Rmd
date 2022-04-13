@@ -1,0 +1,8 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# 矩阵图形 {#matrix-fig}
+
